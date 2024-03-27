@@ -1,0 +1,274 @@
+\documentclass{scrartcl}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{braket}
+\usepackage{amsmath}
+\usepackage{placeins}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage[T1]{fontenc}
+
+\usepackage[sorting=none]{biblatex}
+\addbibresource{Literatur.bib}
+\let\cite=\supercite
+
+\title{Exact diagonalization using \textit{SU(2)} symmetry}
+\subtitle{Computational Methods in Condensed Matter Theory}
+\author{Moritz Janning}
+\date{WS 2023/2024}
+\newcommand{\innerp}[2]{\left\langle #1 \vert #2 \right\rangle}
+
+\begin{document}
+
+
+\maketitle
+
+\section{Introduction}
+The following report will discuss the exact diagonalization of an \textit{SU(2)} symmetric Heisenberg model with frustrated next nearest neighbor interactions on a one dimensional ring. The focus will be the consideration of different symmetries in spin and lattice space namely inversion-, translation- and spin rotation symmetry. The effect of different combinations of symmetries in order to block diagonalize the Hamiltonian will be investigated.
+
+\section{\textit{SU(2)} Symmetry}
+As we consider a $S=\tfrac{1}{2}$ Heisenberg model the spins can be aligned in continuous way and since we look at a one dimensional ring one has to sum over the next nearest neighbor interactions of the entire system. The Hamiltonian of such a system is given by:
+\begin{equation}
+    \hat{H}=J\sum ^{L-1 }_{i=0} \Vec{S}_{i} \cdot \Vec{S}_{(i+1)\%L}+J'\sum ^{L-1 }_{i=0}  \Vec{S}_{i} \cdot\Vec{S}_{(i+2)\%L}
+    \label{Hamiltonian}
+\end{equation}
+where $J=J'=1$ and $L$ is the number of sites. The Hamiltonian can be expressed in the form of raising and lowering operators $S^{\pm}_i$ and the z-component of the spin $S^z_i$. By using the commutations relations of the Spin-Algebra one can find that:
+\begin{equation}
+    S^{\pm}_i=S^{x}_i\pm i S^{y}_i
+    \label{Simple Roots}
+\end{equation}
+where $S^{\pm}_i$ can be considered as the simple roots and $S^z_i$ as the Cartan element of the \textit{su(2)} Lie-Algebra. Using equation \ref{Simple Roots} the following identity can be derived for two arbitrary sites $i$ and $j$:
+\begin{equation}
+    \frac{1}{2}(S^{+}_i S^{-}_j + S^{-}_i S^{+}_j) = S^{x}_i S^{x}_j+S^{y}_i S^{y}_j
+    \label{simple roots identity}
+\end{equation}
+When evaluating the dot products in equation \ref{Hamiltonian} the Hamiltonian can be written as:
+\begin{equation} \begin{aligned}
+    \hat{H}=J\sum ^{L-1 }_{i=0} \left( \frac{1}{2}(S^{+}_i S^{-}_{(i+1)\%L} + S^{-}_i S^{+}_{(i+1)\%L})+ S^z_i S^z_{(i+1)\%L} \right) \\
+    +J'\sum ^{L-1 }_{i=0} \left( \frac{1}{2}(S^{+}_i S^{-}_{(i+2)\%L} + S^{-}_i S^{+}_{(i+2)\%L})+ S^z_i S^z_{(i+2)\%L} \right)
+    \label{Hamiltonian with su2}
+\end{aligned} \end{equation}
+With respect to the implementation of the Hamiltonian in equation \ref{Hamiltonian with su2} it can be seen that it is equivalent to its transposed complex conjugate. As a result one only has to compute the upper or lower triangular part of the Hamiltonian in its matrix representation $H$:
+\begin{equation*}
+    H_{\mathrm{ab}}=\bra{\psi_\mathrm{a}} \hat{H} \ket{\psi_\mathrm{b}}
+\end{equation*}
+where $\ket{\psi_\mathrm{a}}$ and $\ket{\psi_\mathrm{b}}$ are specific spin configurations of the system in the original computational basis. These states are element of the $2^L$ dimensional Hilbert space $V_C$.
+
+\section{Lattice Space Symmetries}
+\subsection{Translational Symmetry}
+The translation operator $T$ acts on a bosonic state as follows:
+\begin{equation*}
+    \hat{T}\ \ket{m_1,m_2,...,m_L}=\ket{m_L,m_2,...,m_{L-1}}
+\end{equation*}
+where $m_i$ is the z-component of the spin on an arbitrary site $i$. Since $\hat{T}$ commutes with the Hamilton operator it can be used to block diagonalize the Hamiltonian:
+\begin{equation*}
+    [\hat{H},\hat{T}]=0
+\end{equation*}
+The vanishing commutator becomes immediately clear when thinking about our system as being defined on a ring. Acting with the translation operator on a state does not have an impact on the energy since every site still experiences the same nearest and next nearest neighbor interaction. In the implementation the vanishing commutator has been checked by explicit calculation for exemplary system sizes. This can be done by finding the matrix representation of the translation operator:
+\begin{equation}
+    T_{\mathrm{ab}}=\bra{\psi_\mathrm{a}} \hat{T} \ket{\psi_\mathrm{b}}
+    \label{Tmatrix}
+\end{equation}
+\newpage \noindent In order to transform the original basis into a translation invariant basis one has to compute symmetric states $\ket{\psi_{n,k}^T}$ which are eigenstates of the translation operator:
+\begin{equation}
+    \ket{\psi_{n,k}^T}=\frac{1}{\sqrt{f_n}} \sum ^{f_n-1}_{r=0} \mathrm{e}^{\mathrm{i}kr} T^r \ket{rep(\psi_n)}
+    \label{symmetric state}
+\end{equation}
+where $k=\frac{2\pi n_k}{L}$ with $n_k \in \mathbb{Z}_L$ is the sector and the $f_n$ is the family size of a specific family $n$. A translation invariant state can belong to different sectors as long as its absolute value is nonzero and if the following condition for its normalizability is fulfilled:
+\begin{equation*}
+    \frac{n_k f_n}{L}\in \mathbb{Z}
+\end{equation*}
+ The representative state $\ket{rep(\psi_n)}$ can generate every other family member by iterative application of the translation operator. In the algorithmic implementation of equation \ref{symmetric state} the matrix representation of the translation operator is used in order to act on the computational basis state which is represented as unit vectors. Creating every symmetric state in vector representation one can transform the original basis into the translation invariant basis $F_T:V_C \rightarrow V_T $ where $F_T$ is the algorithmic function which generates a matrix with every row consisting of the corresponding translation invariant state.
+
+
+
+\subsection{Inversion Symmetry}
+The inversion operator acts on a bosonic state as follows:
+\begin{equation*}
+    \hat{I}\ \ket{m_1,m_2,...,m_{L-1},m_L}=\ket{m_L,m_{L-1},...,m_{2},m_1}
+\end{equation*}
+Completely analogous to the translational symmetry the Hamilton operator also commutes with the inversion operator:
+\begin{equation*}
+    [\hat{H},\hat{I}]=0
+\end{equation*}
+and one can determine its matrix representation as in equation \ref{Tmatrix}. In the implementation this vanishing commutator is checked once again for various system sizes by explicit calculations. One can also check that the inversion matrix is its own inverse which leads to the consequence that one can only reach a maximum family size of two. The inversion invariant states $\ket{\psi_{n,k}^I}$ can be calculated as in equation \ref{symmetric state}:
+\begin{equation}
+    \ket{\psi_{n,k}^I}=\frac{1}{\sqrt{f_n}} \sum ^{f_n-1}_{r=0} \mathrm{e}^{\mathrm{i}kr} I^r \ket{rep(\psi_n)}
+    \label{inversoin symmetric}
+\end{equation}
+where $k=0$ if the inversion invariant state belongs to a family $n$ of size $f_n=1$ and $k=0,\pi$ if it belongs to a family of size $f_n=2$. The algorithmic implementation of $F_I:V_C \rightarrow V_I$ is almost exactly the same as for the creation of the translation invariant basis. 
+
+
+\section{Spin Space Symmetries}
+The following part will discuss the total spin $S^2_{\mathrm{tot}}=(S^x_{\mathrm{tot}})^2+(S^y_{\mathrm{tot}})^2+(S^z_{\mathrm{tot}})^2$ and its projection $S^z_{\mathrm{tot}}$. The total spin of a specific component is defined as $S^{\alpha}_{\mathrm{tot}}=\sum ^{L-1}_{i=0} S_i^{\alpha}$. The goal will be to represent the computational basis states as eigenstates of $S^2_{\mathrm{tot}}$ and $S^z_{\mathrm{tot}}$ by coupling the spins using Clebsch Gordan coefficients. By doing so one achieves a Spin rotational invariant basis which can be used to block diagonalize the Hamiltonian. In order for this to work one has to make sure that both operators commute with the Hamiltonian. Using equation \ref{simple roots identity} the operator $S^2_{\mathrm{tot}}$ can be expressed by $S^z_{i}$ and the raising and lowering operators:
+\begin{equation}\begin{aligned}
+    S^2_{\mathrm{tot}}=& \left( \sum ^{L-1}_{a=0} S_a^{x} \right)^2+\left( \sum ^{L-1}_{b=0} S_b^{y} \right)^2+\left( \sum ^{L-1}_{i=0} S_i^{z} \right)^2 \\
+    =& \sum ^{L-1}_{a=0} \sum ^{L-1}_{b=0} \left( S_a^{x} S_b^{x} + S_a^{y} S_b^{y} \right) +\left( \sum ^{L-1}_{i=0} S_i^{z} \right)^2\\
+    =& \frac{1}{2} \sum ^{L-1}_{a=0} \sum ^{L-1}_{b=0} \left(S^{+}_a S^{-}_b + S^{-}_a S^{+}_b \right)  +\left( \sum ^{L-1}_{i=0} S_i^{z} \right)^2
+    \label{s^2 tot}
+\end{aligned}\end{equation}
+The commutation relations for these operators are known and can be derived from the general properties of the spin algebra: 
+\begin{align}
+    [S^z_i,S^z_j]&=0 \label{com sz} \\ [S^z_i,S^{\pm}_j]&=\pm S^{\pm}_j \label{com sz s+}\delta_{ij} \\ [S^{+}_i,S^{-}_j]&=2 S^z_i \delta_{ij} \label{com s+ s-}
+\end{align}
+Using equation \ref{com sz} the commutators of the $S^z$ operators between equation \ref{s^2 tot} and \ref{Hamiltonian with su2} in $[\hat{H},S^2_{\mathrm{tot}}]$ will vanish. The full calculation of $[\hat{H},S^2_{\mathrm{tot}}]$ is extremely lengthy and repetitive which is why the calculation will be reduced to two specific commutators. Using the product rule for commutators the calculation can be constrained to:
+\begin{equation}
+    \left[ \sum ^{L-1}_{b=0} S^{+}_b,\sum ^{L-1 }_{i=0}  S^{+}_i S^{-}_{(i+1)\%L}\right]= 2 \sum ^{L-1 }_{i=0}  S^{+}_i S^{z}_{(i+1)\%L}
+    \label{eq:vanish1}
+\end{equation}
+which can be simplified by using the relation shown in equation \ref{com s+ s-}. This term will now cancel with the following commutator which can be determined using the relation \ref{com sz s+}:
+\begin{equation}
+    \left[ \sum ^{L-1}_{b=0} S^{+}_b,\sum ^{L-1 }_{i=0}  S^{z}_i S^{z}_{(i+1)\%L}\right]= -2 \sum ^{L-1 }_{i=0}  S^{+}_i S^{z}_{(i+1)\%L}
+    \label{eq:vanish2}
+\end{equation}
+\newpage
+\noindent The commutators originating from $S^-_a$ in equation \ref{s^2 tot} can be determined completely analogous. With these two relations shown in equation \ref{eq:vanish1} and \ref{eq:vanish2} it can be followed that $[\hat{H},S^2_{\mathrm{tot}}]=0$. The calculation of $[\hat{H},S^z_{\mathrm{tot}}]$ can be constrained to the calculation of:
+\begin{equation}
+    \left[ \sum ^{L-1}_{b=0} S^{z}_b,\sum ^{L-1 }_{i=0}  S^{+}_i S^{-}_{(i+1)\%L}\right]= 0
+\end{equation}
+This can be shown by applying the commutator in equation \ref{com sz s+} two times. The switching sign by the alternating $S^+$ and $S^-$ commutation then provides the vanishing commutator. Because the translation and inversion operator act in the lattice space in contrast to $S^2_{\mathrm{tot}}$ and $S^z_{\mathrm{tot}}$ acting in the spin space we can immediately follow that:
+\begin{equation*}
+    [S^2_{\mathrm{tot}},T]=[S^2_{\mathrm{tot}},I]=[S^z_{\mathrm{tot}},T]=[S^z_{\mathrm{tot}},I]=0
+\end{equation*}
+
+\subsection{Single Spin Addition} 
+In order to create a basis that is an eigenstate of $S^2_{\mathrm{tot}}$ and $S^z_{\mathrm{tot}}$ the spins are now going to be coupled in a single iterative way for each state of the computational basis. The calculation will end up with coupled states containing the information of the total spin $J$ and its z-component $m$. One can start coupling two spins $\ket{j_1,m_1}\otimes\ket{j_2,m_2}$ by inserting a complete basis of coupled basis states $\ket{J_1, M_1}$:
+\begin{equation} 
+\begin{aligned}
+    \ket{j_1,m_1,j_2,m_2}&=\sum _{J_1} \sum _{M_1} \innerp{J_1, M_1}{j_1,m_1,j_2,m_2} \ \ket{J_1, M_1} \\
+    &= \sum _{J_1} \sum _{M_1} CG(j_1,m_1,j_2,m_2,J_1,M_1) \ \ket{J_1, M_1}
+    \label{eq: spin coupling1}
+\end{aligned}
+\end{equation}
+where $CG(j_1,m_1,j_2,m_2,J_1,M_1)$ is the Clebsch Gordan coefficient for a specific set of quantum numbers. When coupling two different spin systems the z-component of the spin is additive. We can therefore follow that $CG(j_1,m_1,j_2,m_2,J_1,M_1)$ is only nonzero if $M_1=m_1+m_2$. One can further simplify expression \ref{eq: spin coupling1} by taking into consideration the total spin $J_1$ is at minimum $|j_1-j_2|$ and at maximum $j_1+j_2$. Equation \ref{eq: spin coupling1} can be therefore rewritten as:
+\begin{equation}
+\begin{aligned}
+    \ket{j_1,m_1,j_2,m_2}&= \sum^{j_1+j_2}_{J_1=|j_1-j_2|} CG(j_1,m_1,j_2,m_2,J_1,m_1+m_2) \ \ket{J_1, M_1}
+    \label{eq: spin coupling2}
+\end{aligned}
+\end{equation}
+\newpage \noindent Coupling another spin $\ket{j_3,m_3}$ can now be done by inserting another complete basis of coupled basis states $\ket{J_2, M_2}$ with respect to equation \ref{eq: spin coupling2}:
+\begin{equation}
+\begin{aligned}
+    \hspace{-1.5cm} \ket{j_1,m_1,j_2,m_2,j_3,m_3} =\sum^{J_1+j_3}_{J_2=|J_1-j_3|}\sum^{j_1+j_2}_{J_1=|j_1-j_2|}CG(J_1,M_1,j_3,m_3,J_2,M_2) CG(j_1,m_1,j_2,m_2,J_1,M_1)\ket{J_2, M_2}
+    \label{eq: spin coupling3}
+\end{aligned}
+\end{equation}
+where $M_1=m_1+m_2$ and $M_2=m_1+m_2+m_3$. For our case $j_{1,2,3}=1/2$ so one can calculate the coupling of three different spins with arbitrary $m$ based on equation \ref{eq: spin coupling3}:
+\begin{equation}
+\begin{aligned}
+&\ket{j_1,m_1,j_2,m_2,j_3,m_3}
+\\&=CG(j_1=1/2,j_2=1/2,J_1=0)CG(J_1=0,j_3=1/2,J_2=1/2)\ket{1/2, M_2} \\ &+ CG(j_1=1/2,j_2=1/2,J_1=1)CG(J_1=1,j_3=1/2,J_2=1/2) \ket{1/2, M_2} 
+    \\ &+ CG(j_1=1/2,j_2=1/2,J_1=1)CG(J_1=1,j_3=1/2,J_2=3/2) \ket{3/2, M_2}
+    \label{eq: spin coupling4}
+\end{aligned}
+\end{equation}
+where for simplicity the Clebsch Gordan coefficients are now written without the z-component of the (coupled) spins even though their values still depend on them. This coupling can be visualized in a tree-like diagram as it can be seen in figure \ref{fig:single spin addition}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/single spin addition.png}
+    \caption{Single spin addition scheme: Starting with one spin the coupling of further spins creates a tree like diagram.}
+    \label{fig:single spin addition}
+\end{figure}
+\FloatBarrier
+
+\noindent For a system size of $L=3$ figure \ref{fig:single spin addition} shows that the iterative coupling provides two states with $J_2=1/2$ and one state with $J_2=3/2$ as just derived in equation \ref{eq: spin coupling4}. \newpage \noindent The output of the algorithmic implementation of $F_S$ is a transformation matrix which consists of the new spin rotation invariant basis $F_S:V_C \rightarrow V_S$. The spin rotation invariant Hilbert space $V_S$ is constructed in the following way:
+\begin{equation}
+    V_S= \bigoplus_J \bigoplus_{i=1}^{\alpha_J} V_{J i}
+\end{equation}
+where $V_{J n}$ is a spin space of specific $J$ with dimension $2 J+1$. The term $\alpha_J$ considers the number of states that exist for a certain value of $J$ as it can be seen in figure \ref{fig:single spin addition}. States that are element of $V_S$ are therefore identified by their spin-quantum-numbers and their numeration $\ket{J,M,i}$.\
+
+The major challenge for the implementation was keeping track of the correct affiliation between the product of various Clebsch Gordan coefficients and the corresponding state with specific $J$. Furthermore one has to count the amount of created states for a specific $J$ which in turn result in repetitive coupling with the next spin. There are two obvious optimizations that easily improve the computational speed of the algorithm. The first one is immediately discarding all Clebsch Gordan coefficients that would involve $M>J$. These coefficients are unphysical and therefore always vanish. The second improvement comes from discarding all tree-like branches that originate from a vanishing Clebsch Gordan coefficient. Because the Clebsch Gordan Coefficients within a specific branch are multiplied its vanishing value reproduces for further coefficients.
+
+\subsection{Pairwise Spin Addition}
+Instead of providing another implementation for the pairwise spin addition the following part will only sketch the mathematical principle behind this pairing scheme. The implementation turned out to be very involved and i was not able to provide a working code based on the single spin addition. The major reason for this becomes clear when talking about the branching scheme which behaves fundamentally different than for the single spin addition. The only working code that is provided for this part is the separation of the spin chain into coupled pairs. Based on equation \ref{eq: spin coupling2} the coupling of two pairs ($J_1$~and~$J_2$) can be expressed as:
+\begin{equation}
+\begin{aligned}
+    \hspace{-0.5cm}&\ket{j_1,m_1,j_2,m_2,j_3,m_3,j_4,m_4}=  \sum^{j_3+j_4}_{J_2=|j_3-j_4|} \sum^{j_1+j_2}_{J_1=|j_1-j_2|} CG(J_1) CG(J_2) \ \ket{J_1, M_1,J_2,M_2} \\
+    &= \sum^{J_1+J_2}_{J_3=|J_1-J_2|}  \sum^{j_3+j_4}_{J_2=|j_3-j_4|} \sum^{j_1+j_2}_{J_1=|j_1-j_2|} CG(J_1) CG(J_2) CG(J_3) \ \ket{J_3,M_3}
+    \label{eq: spin coupling pairs1}
+\end{aligned}
+\end{equation}
+where for simplicity the arguments of the Clebsch Gordan coefficients are reduced to the total spin $J_i$ after the coupling. For $j_{1,2,3,4}=1/2$ one can deduce from equation \ref{eq: spin coupling pairs1} that an addition of a spin pair ($J_2$) can effect the coupled system by $J_3=J_1\pm1$ ($J_1\neq0$) which is intuitive since one is adding a pair consisting of two spins.\newpage \noindent The crucial difference to the single spin addition is that coupling another pair to the system can also add $J_2=0$ so the coupled system ends up with $J_3=J_1$. Furthermore the original spin can also stay unchanged when adding $J_2=1$ to $J_1\neq0$ such that $J_3=|J_1-J_2|+1=J_1$ which corresponds to the the second summand in the summation over $J_3$ in equation \ref{eq: spin coupling pairs1}. For $J_1=0$ one only achieves an unchanged total spin when adding $J_2=0$. This leads to a much more complicated diagram which is shown in figure \ref{fig:pairwis spin addition}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/pair spin addition.png}
+    \caption{Visualized branching scheme for the coupling of spin pairs. Comparing the decomposition of two coupled pairs with the decomposition of four coupled single spins in figure \ref{fig:single spin addition} it can be seen that both addition schemes lead to the same result.}
+    \label{fig:pairwis spin addition}
+\end{figure}
+\FloatBarrier
+
+\newpage
+\section{Combining Symmetries}
+When combining spin rotation- with translation symmetry without any further manipulations it turns out that the new created basis is overcomplete. This overcompleteness has to be prevented by linearly combining all basis states of a certain $J$ and $M$ in order to make them degenerate:
+\begin{equation}
+\forall \ i \in \mathbb{Z}_{\alpha_{J}}^+ : \ket{J,M,i} \xrightarrow[]{F_{\mathrm{Deg}}} \frac{1}{\sqrt{\alpha_J}}\sum_{i=1}^{\alpha_J} \ket{J,M,i}    
+\end{equation}
+The new degenerate basis states are still eigenvectors of $S^2_\mathrm{tot}$ and $S^z_\mathrm{tot}$. By making them degenerate they reproduce the same translation families so the dimension of the new rotation- and translation invariant basis is reduced such that it is complete.\
+When adding inversion symmetry it must be taken into account that $\hat{T}$ and $\hat{I}$ only commute for specific states. The condition for their commutation is that the state belongs to the sectors $k=0$ or $k=\pi$. With this constraint all $k=0,\pi$ spin rotation and translation invariant basis states can be additionally made inversion invariant. The final basis includes all three symmetries:
+\begin{equation}
+   V_C \xrightarrow[]{F_{\mathrm{S}}} V_S \xrightarrow[]{F_{\mathrm{Deg}}} V_{S_{\mathrm{Deg}}} \xrightarrow[]{F_T} V_{S_{\mathrm{Deg}}+T} \xrightarrow[]{F_I(k=0,\pi)} V_{S_{\mathrm{Deg}}+T+I}
+\end{equation}
+The order of adding symmetries could have also been chosen differently but starting with spin rotation symmetry is particularly practical because one can use the binary representation of the computational basis $V_C$ in the algorithmic implementation of $F_{\mathrm{S}}$.
+
+\newpage
+\section{Block Diagonalization}
+To begin with the diagonalization of $H$ will be pursued using the basis $V_{T+I}$:
+\begin{equation}
+    H_{T+I}=M_{T+I} \ H \ M_{T+I}^{-1}
+    \label{eq:H_T+I}
+\end{equation}
+where $M_{T+I}$ is the transformation matrix consisting of the basis states which are element of $V_{T+I}$. The blockdiagonal Hamiltonian $H_{T+I}$ will be compared to the block diagonalization additionally using spin rotation symmetry:
+\begin{equation}    H_{S_{\mathrm{Deg}}+T+I}=M_{S_{\mathrm{Deg}}+T+I} \ H \ M_{S_{\mathrm{Deg}}+T+I}^{-1}
+    \label{eq:H_S+T+I}
+\end{equation}
+The comparison will consider the size of the largest block with respect to the system size. For the lattice space symmetries it is clear that the largest block size belongs to the sector $k=0$. Including spin rotational symmetry the maximum total spin $J_{\mathrm{max}}=L/2$ will always belong to the sector $k=0$ since its Clebsch Gordan decomposition just consists of one computational state. Because the maximum total spin has the highest dimensional subspace the combination of $J_{\mathrm{max}}$ and $k=0$ for translation and inversion symmetry provides the largest block. A comparison of the largest block size between the Hamiltonian shown in equation \ref{eq:H_T+I} and \ref{eq:H_S+T+I} can be seen in figure \ref{fig:blocksize}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/Blocksize.png}
+    \caption{Evolution of the size from the biggest block with respect to the system size.}
+    \label{fig:blocksize}
+\end{figure}
+\FloatBarrier
+\noindent Figure \ref{fig:blocksize} shows that the size of the biggest block scales in an exponential way when only considering lattice space symmetries. Including both symmetries the block size scales with the dimension of the subspace $J_{\mathrm{max}}$ which is equivalent to $2 \ J_{\mathrm{max}}+1=L+1$. Therefore it behaves linearly and brings a huge benefit when looking at larger system sizes.\\
+
+Considering all symmetries the eigenvalues can be calculated for the largest block. The eigenvalues are then sorted in order to determine the reduced ratio $r_n$ of neighboring gaps in the spectrum:
+\begin{equation}
+    r_n=\mathrm{min} \left( \frac{E_{n+1}-E_n}{E_n-E_{n-1}}, \frac{E_n-E_{n-1}}{E_{n+1}-E_n} \right)
+\end{equation}
+For a system size of $L=5$ and $L=10$ normalized histograms of $r_n$ are shown in figure \ref{fig:histo_5} and \ref{fig:histo_10}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/Histogram (2).png}
+    \caption{Histogram of the reduced ratio $r_n$ of neighboring energy gaps in the spectrum of the largest Block for system size $L=5$}
+    \label{fig:histo_5}
+\end{figure}
+\FloatBarrier
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/Histogram (1).png}
+    \caption{Histogram of the reduced ratio $r_n$ of neighboring energy gaps in the spectrum of the largest Block for system size $L=10$}
+    \label{fig:histo_10}
+\end{figure}
+\FloatBarrier
+For a smaller system size as shown in figure \ref{fig:histo_5} one can see that $r_n$ is mostly zero (implying no energy gap) or equivalent to one implying that the energies are equidistant to one another.
+For larger system sizes as shown in figure \ref{fig:histo_10} the reduced ratio tends to spread and only slightly accumulates at a value of around $0.6$. As a result the energy gaps get less equidistant.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/average r_n.png}
+    \caption{Evolution of mean($r_n$) with respect to the system size.}
+    \label{fig:average r_n}
+\end{figure}
+
+The mean value of the reduced ratio shown in figure \ref{fig:average r_n} confirms this observation by showing that it gets smaller for larger system sizes. 
+
+\section{Conclusion}
+In this report multiple symmetries have been successfully combined in order to blockdiagonalize the Hamiltonian of the \textit{SU(2)} symmetric Heisenberg model. The spin rotation invariant basis has been generated via the single spin addition scheme. Combining the spin rotation invariance with lattice space symmetries it has been shown that the size of the largest block can be reduced significantly for larger system sizes. Calculating the energy eigenvalues of these blocks it was shown that the energy spectrum gets less equidistant with increasing system size.\\
+Unfortunately the implementation is extremely slow such that only system sizes up to $L=10$ have been reached. The main problem seems to be the algorithmic implementation of the lattice symmetries which is surprisingly slow. The implementation for the creation of the spin rotation invariant basis is able to provide results up to system sizes of $L=14$ in a reasonable amount of time. Taking everything into consideration the main task was fulfilled but there is definitely a lot of room for further optimizations.
+
+\end{document}
