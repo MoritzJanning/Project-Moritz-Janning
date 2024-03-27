@@ -1,0 +1,194 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{braket}
+\usepackage{amsmath}
+\usepackage{placeins}
+\title{AMO Project}
+\author{Moritz Janning}
+\date{January 2024}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+In 1952, Edward Mills Purcell was awarded the Nobel Prize in Physics for his pioneering work in nuclear magnetic resonance (NMR). This recognition highlighted the groundbreaking nature of his contributions to understanding the behavior of atomic nuclei in magnetic fields. Purcell's research not only had immediate implications for the field of physics but also laid the foundation for numerous applications in chemistry and medical diagnostics. In the following essay we will start by discussing the basic physics behind the phenomenon of NMR. We will then further discuss the technical implementation on how one can generally measure the effects of NMR. After that we will switch to the wide field of applications enabled by Purcell's work. 
+
+\section{Theory}
+
+Just like the electron the nucleus of an atom also shows the intrinsic property of a spin $I$. For the nucleus the spin is given by the amount of neutrons, protons and the general structure of its shell. When applying a magnetic field to the nucleus we can understand it completely analogous as for the Zeeman-Effect of the electron spin. Since the nucleus is a positively charged particle the spin results in a magnetic momentum $\Vec{\mu}$. However we are now interested in applying a homogeneous magnetic field $B_{\mathrm{0}}$ on the nucleus in z-direction. Therefore we only want an expression for the z-component of the magnetic momentum $\mu_{z}$. Using the nuclear magneton $\mu_{\mathrm{N}}=\dfrac{e}{2M_{\mathrm{N}}}$ we can write:
+\begin{equation}
+    \mu_{\mathrm{z}}=g_{\mathrm{N}} \mu_{\mathrm{N}}\ m_{\mathrm{I}} =\hbar \gamma_{\mathrm{N}} \ m_{\mathrm{I}}
+    \label{eq:magnetic moment}
+\end{equation}
+where $g_{\mathrm{N}}$ gyromagnetic constant, $M_{\mathrm{N}}$ the mass of the nucleus, $e$ the elementary charge and $m_{\mathrm{I}}$ the z-component of the nucleus spin. $m_{\mathrm{I}}$ ranges from $-I$ to $I$ in $2I+1$ integer steps. $g_{\mathrm{N}}$ depends on the nuclear structure and is therefore unequal to the case of an electron. It is important to point out that this nuclear momentum only originates from the spin of the nucleus. In the lecture we had discussed total momentum of the electron by considering the spin and the orbital angular momentum. The combination of both led to the fine structure of the hydrogen atom.\
+
+The magnetic momentum can now couple to the outer magnetic field which leads to an energy shift (Zeeman Effect). For an electron we saw in the lecture that the magnetic field can enter the hamitltonian of our system in two different ways, namely the linear- and the quadratic zeeman effect. The linear zeeman effect is simply responsible for the alignment of the magnetic momentum in an external magnetic field. For electrons the quadratic zeeman effect was only relevant for big magnetic fields. We still want to quickly discuss the quadratic zeeman effect for the case of the nucleus. We have an intuitiv electrodynamic explanation for the quadratic zeeman effect. The external magnetic field causes a lorentz force onto the positively charged nucleus with a thermally driven random motion. This force leads the nucleus into a cyclotron motion. This cyclotron motion causes another magnetic momentum which contributes to the energy shift. For the example of the proton the cyclotron frequency can be classicaly calculated by the expression $w_{\mathrm{c}}=B\ \mu_{\mathrm{^1 \mathrm{H}}}$. Since the ratio of bohr and nuclear magneton can be determined to $\mu_{\mathrm{^1 \mathrm{H}}}/\mu_{\mathrm{B}}=1836$ we can deduce that the quadratic zeeman effect is even more irrelevant than for the electron. Purcell himself did experiments on the cyclotron motion of protons which we are going to briefly discuss later.\
+
+With respect to equation \ref{eq:magnetic moment} the energetic zeeman shift induced by an external magnetic field can be written as:
+\begin{equation}
+    \Delta E=B_0 \ \mu_{\mathrm{z}}= B_0 \hbar \gamma_{\mathrm{N}} \ m_{\mathrm{I}}
+\end{equation}
+For most applications of NMR, which we are going to discuss later, hydrogen $^1 \mathrm{H}$ plays a predominant role. The nuclear spin of the hydrogen atom $^1 \mathrm{H}$ is equal to $I=1/2$. The energy splitting from the zeeman effect is visualized in figure \ref{fig:energy shift}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=10cm]{figs/Zeemann 1H.png}
+    \caption{Energy splitting for the $^1 \mathrm{H}$ hydrogen isotope.}
+    \label{fig:energy shift}
+\end{figure}
+
+In figure \ref{fig:energy shift} $\nu$ is considered to be the resonance-frequency. As $\Delta m_{\mathrm{I}}=1$ its energy is equivalent to the two gap between the two levels. We can therefore write for the resonance frequency:
+\begin{equation}
+    \nu=B_0 \ \dfrac{\gamma_{\mathrm{^1\mathrm{H}}} }{2\pi}
+    \label{eq:resonance frequency}
+\end{equation}
+In order to understand the magnetization of the system we want to link this problem to another subject discussed in the lecture namely the optical bloch equation for two level systems. Due to the Boltzmann equation our system shows a magnetization $\Vec{M}$ since there is an energy difference between a parallel and antiparallel alignment of the spins with respect to the magnetic field $\Vec{B}$. We can write down the bloch equation in a stationar frame of reference. This equation describes the magnetization of the system in thermal equilibrium:
+\begin{equation}
+    \dfrac{d}{dt}\Vec{M(t)}=\gamma_{\mathrm{N}}\  \Vec{M(t)} \times \Vec{B} -\begin{pmatrix} M_{\mathrm{x}}(t)/T_2 \\ M_{\mathrm{y}}(t)/T_2 \\ (M_{\mathrm{z}}(t)-M_0)/T_1 \end{pmatrix}
+    \label{eq:Bloch}
+\end{equation}
+where $T_1$ is the longitudinal relaxation time and $T_2$ the transversal relaxation time. SPINSPIN SPINLATTICE.In our case $\Vec{B}=(0,0,B_\mathrm{0})$ and with no relaxation $T_1, T_2\rightarrow \infty$ we can deduce with respect to equation \ref{eq:Bloch}:
+\begin{equation}
+    \dfrac{d}{dt}\Vec{M(t)}= \gamma_{\mathrm{N}} B_{\mathrm{0}} \ \begin{pmatrix} M_{\mathrm{y}}(t) \\ -M_{\mathrm{x}}(t) \\ 0 \end{pmatrix}
+    \label{eq:precession}
+\end{equation}
+where $\gamma_{\mathrm{N}} B_{\mathrm{0}}$ can now be interpreted as a precession frequency $\omega$ around the magnetic field. $\omega$ which is equivalent to the resonance frequency  $\nu$ times $2\pi$ and is also called the lamor frequency. There are different ways of driving the system with its resonance frequency. As an example we can flip the total magnetization by 90° into the x-y plane when $\omega\cdot \tau=\pi/2$ where $\tau$ is the time of irradiation. This type of irradiating the sample is called a $\pi/2$-pulse. Purcell himself did experiments on investigating relaxation times and was part of developing a specific sequence of pulses called the Carr-Purcell sequence. We are going to discuss this in more detail when talking about the applications in physics.
+
+
+
+
+
+
+
+
+
+\section{Technical Implementation}
+
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=10cm]{figs/NMR Setup.png}
+    \caption{General setup for the detection of NMR signals.}
+    \label{fig:NMR setup}
+\end{figure}
+\FloatBarrier
+
+When NMR was first detected the general setup for the experiment involved three major components as shown in figure \ref{fig:NMR setup}. The sample is placed into a homogenous magnetic field which is provided by two magnet poles. It is constant and we call it the main magnetic field. The sample is also surrounded by two sweep coils which are able to generate a varying magnetic field. Therefore the total magnetic filed that the sample experiences is given by the magnet poles and the sweep coils. The radio frequency transmitter generates a high-frequency electromagnetic field (usually in the range of radiofrequencies) which is perpendicular to the main magnetic field. This frequency is supposed to excite the spins and therefore corresponds to the resonance frequency. In order to reach the resonant case there are two different methods. In the continuous field Method (outdated) the main magnetic field is constant while the excitation frequency is varied until one reaches the resonant case. In the continuous field method the excitation frequency is constant while the magnetic field from sweep coils is varied until the resonant case occurs. 
+One can only measure a change in the magnetization which is perpendicular to the main magnetic field. One can do this by applying a $\pi/2$ pulse to the sample and then measure the loss of magnetization in the x-y plane within the relaxation time $T_2$. The loss of magnetization in the x-y plane then induces a voltage which is measured by the radio frequency receiver and amplifier.
+
+
+
+\section{Applications}
+\subsection{Physics}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=10cm]{figs/Spinecho sequenz.png}
+    \caption{Spin-Echo-Sequence}
+    \label{fig:Spin-Echo}
+\end{figure}
+\FloatBarrier
+
+As already mentioned Purcell himself also did experiments regarding to nuclear relaxation. Purcell was especially interested in measuring $T_1$  which describes the relaxation of the spins in direction of the magnetic field. In order to understand the conceptual advance of his work one we may first have a look at the Hahn-Spinecho sequence depicted in figure \ref{fig:Spin-Echo}. The Hahn-Spinecho sequence consists of three pulses:
+\begin{equation*}
+    \pi/2\rightarrow t \rightarrow \pi \rightarrow 2t
+\end{equation*}
+In the beginning the spins are majorly in a parallel alignment with the magnetic field (z-direction). This results in a magnetization in z-direction. As one can see the first $\pi/2$-pulse flips the magnetization into the x-y plane. This means the spins are aligned in a horizontal way. After some time $t$ the spins dephase due to spin-spin-relaxation. This dephasing occurs with a varying speed for different spins. The reason for this is because of inhomogenities in the magnetic field which lead to varying resonance frequencies for the different spins. As a result the x-y magnetization slowly decays which can be measured. By applying a $\pi$-pulse we flip the spins in the x-y plane. As the spins rotate further in the x-y plane they get in phase again. The flip in the x-y plane has the advantage that it exactly cancels out the inhomogenities of the magnetic field. Spins that experienced a slower dephasing before the $\pi$-pulse will now faster reach the opposite magnetization in the x-y plane. When the spins get in phase again after some time $t$ the magnetization in the x-y plane slowly rises again which can be measured. This signal is called the spin echo. The intensity of the spinecho is little bit smaller than the signal that was detected due to the the first pulse. The reason for this is the spin-lattice relxation. During the de- and rephasing some spins relaxate in their z-component towards thermal equilibrium. At this point the groundbreaking advance of purcells work comes into place. With the help of Carr, purcell developed the following sequence which bases on the Hahn-Spinecho sequence:
+\begin{equation*}
+    \pi/2\rightarrow 2t \rightarrow \pi \rightarrow 2t \rightarrow \pi \rightarrow ...
+\end{equation*}
+By doing multiple $\pi$-pulses one can compare the intensity of the different spin-echos and therefore deduce the spin-lattice relxation time $T_1$.
+
+
+
+
+
+
+When exciting spins with their resonance frequency  orientate in an antiparallel way with respect to the applied magnetic field. Due to this excitation our system is no longer in thermal equilibrium. The time that is needed for the spin-lattice relaxation differs strongly for different materials. It ranges from hours to less than milliseconds. Purcell found out that the spin-lattice-relaxation time depends on the spins ability of transferring the excitation energy to the crystal lattice or more general surrounding atoms. Purcell first saw this topic as purely physically interesting. Around twenty years later the aspect of different relaxation times played a crucial role in the development of magnetic-resonance-imaging which are going to discuss later.\\
+
+
+
+
+Another advance of NMR was that one was now able to precisely measure the magnetic momenta of different nuclei. Since the measurement of the nuclear momentum depends on the applied magnetic field the accuracy of the nuclear momentum is limited by the accuracy of the magnetic field. At the time it was technically very hard to measure magnetic fields precisely. Therefore one started to measure the ratios of the nuclear momenta for different nuclei of the same element. Another problem people were facing was that different materials lead to different shielding effects of the magnetic field. As a result even with the same applied magnetic field different nuclei in different materials do not experience the same effective magnetic field. An ingeneous work arround for this problem was measuring molecules that bond the two nuclei of interest. By doing so one can be very sure both nuclei experience the same effective magnetic field. One of the first examples for this procedure was the hydrogen molecule $\mathrm{H-D}$. The problem of shielding effects become increasingly difficult when measuring nuclear momenta of atoms with higher atomic number. One had to introduce a factor which corrects the shielding effect of the electrons in the atomic shell. In his nobel lecture Purcell points out that the measurements of such nuclei are not reliable until improved wavefunctions for the atoms are available. Nevertheless this new technology still offered the possibility to measure the ratio of nuclear momenta of different isotopes with very high accuracy. Therefore at the time a very promising application of this technology was testing different theories for the nuclear shell structure. Purcell himself did measurements in order to evaluate the ratio of the protons precession frequency and the electrons cyclotron frequency. By using the same magnetic field it cancels out in the ratio and we are left with the ratio of certain atomic constants. \\ 
+
+NMR also had an immediate impact on measuring magnetic fields. As we already pointed out measuring magnetic fields with high precision was a technically demanding task at this time. With a single very precise measurement of the protons nuclear momentum people around the world could use this value as a reference in order to determine the intensity of magnetic fields. With this standard of reference the only thing left to do was precisely creating radio frequencies which was already possible at this time. One could then put a sample of hydrogen atoms into a magnetic field of unknown strength and find out the resonance frequency. By using equation \ref{eq:resonance frequency} one can calculate the magnetic field strength. This development was a huge simplification for experimental physicists. This technique is nowadays still available as a commercially purchaseable device. One example is the so called proton magnetometer.\\
+
+
+
+\subsection{(Physical) Chemistry}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=7cm]{figs/MR of different materials.png}
+    \caption{NMR-Spectroscopy of different materials.}
+    \label{fig:MR of different materials}
+\end{figure}
+
+Already in his time Purcell became aware that nuclear magnetism has great applications in investigating molecular structures and molecular motion. For the latter one we are now predominantly interested in the shape of NMR spectra. On the left in figure \ref{fig:MR of different materials} one can see NMR-spectra of ice for different temperatures. For the temperature of -180°C the resonance peak is much wider than for -10°C. As already mentioned the atomic nuclei can experience different effective magnetic fields depending on their chemical environment. Beside electronic shielding effects the different nuclear magnets can also influence one another. Imagine an ice crystal with very low thermally driven molecular motion at -180°C. Each nucleus experiences the tiny nuclear magnetic field of its neighbour which slightly shifts its resonance frequency. The variety of magnetic interactions of neighboring nuclei results in a broadened resonance peak. However with stronger thermally driven motion (-10°C) this magnetic interaction averages out because the molecules are switching their lattice sites much more rapidly. This means that the narrow resonance peaks of solid state materials are a measure for lattice displacements and molecular motion. Nuclear magnetic studies are therefore a great improvement to reveal the molecular motion in crytals.\\
+
+NMR-Spectrocopy initiated a revolution for molecular structural elucidation in chemistry. Hydrogen is an atom that occurs in almost every organic compound. Doing NMR experiments in the frequency range of this particular atom could therefore give new insights in the structure of molecules. Nowadays the most common method is $^1\mathrm{H}$-NMR spectrocopy. When Purcell talked about this new developement he mentioned the example of ethanol shown in figure \ref{fig:Ethanol NMR}. Molecular bonds provide a constant chemical environment of the hydrogen atoms.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=7cm]{figs/Ethanol NMR.png}
+    \caption{NMR-Spectroscopy of Ethanol. The molecule is shown in the upper right corner. The hydrogen atoms that cuase their corresponding signal are marked with the same color.}
+    \label{fig:Ethanol NMR}
+\end{figure}
+Looking at the ethanol molecule in figure \ref{fig:Ethanol NMR} we can say that there are three different classes of chemically equivalent hydrogen atoms. Every hydrogen atom of one chemical equivalence class is bonded to the same carbon-atom and experiences the same electronic influence of its surroundings. We therefore get one peak for each equivalence class. The different shifts of the resonance frequency are called chemical shifts. There is one aspect behind this spectrum people were not able to resolve at this time but is already mentioned by purcell in his nobel lecture. This aspect contains the magnetic influence of the nuclei on one another. As we already pointed out the spin quantum number of $^1\mathrm{H}$ can be either $-1/2$ or $+1/2$. Depending on the spin orientation of the neighboring hydrogen atoms this magnetic influence can also shift the resonance frequency. As one might already think there are multiple combinations of $-1/2$ or $+1/2$ spin orientations for all hydrogen atoms. This effect would result in a more complicated spectrum where the singletts shown in figure \ref{fig:Ethanol NMR} would split into multiplet signals. From the NMR-Spectrum of molecules we can therefore not only read of the information of chemical equivalence classes but also how they are neighbored to one another. This developement lead to an entirely new field of chemistry and is now part of the chemist's everyday life.
+
+\subsection{Medical Diagnostics}
+The basic setup of magnetic resonance imaging (MRI) is very similar to the general setup shown in figure \ref{fig:NMR setup}. In this case the sample is the person which is supposed to be examined. In the majority of medical contexts, hydrogen nuclei within tissues are used to generate the signal. This signal reproduces an image depicting the density of these nuclei within a particular region of the body. In modern MRI the longitudinal and transerval relaxation times are also used in order determine the contrast of different tissues. Because both relaxation times $T_1$ and $T_2$ are highly specific for the material one can deduce the general condition or anomalies of the tissue. To achieve a spatial resolution of our image the coils vary their magnetic field in the x-y plane. Therefore only a specific region of the patient experiences a magnetic field such that the incoming radiofrequency is in resonance. Nowadays MRI is one of the most important diagnostic devices in medicine and probably saved millions of lifes. With purcells contributions to NMR and especially his work on measuring $T_1$ his research had a great impact in this field.
+
+\section{Conclusion}
+
+
+
+
+
+\section{bullshit}
+
+Bullshit am start:\\
+
+??In his nobel lecture Purcell describes the nucleus spin semiclassicaly as a precessing gyroscope in earths magnetic field.??
+
+
+We will start with the general usage of this technology in order to measure nuclear magnetic momenta and how one can use these in order to measure magnetic fields with unprecedented accuracy. The usage\\
+
+We can describe the total spin $\hat{I}$ and its projection $\hat{I_{\mathrm{z}}}$ as operators that act on a state. For the projection $\hat{I_{\mathrm{z}}}$ operator we can therefore write:
+\begin{equation}
+   \hat{I_{\mathrm{z}}} \ket{I,m_{\mathrm{z}}}=\hbar m_{\mathrm{z}}\ket{I,m_{\mathrm{z}}}
+\end{equation}
+
+Completely analogous to the electron spin he describes the spin of the nucleus as a precessing gyroscope. This prescession gives rise to an intrinsic angular momentum which is quantized by the spin quantum number $I$. The component of the angular momentum along the z-axis $I_{\mathrm{z}}$ is quantized by the quantum number $m_{\mathrm{I}}$ and can be described by the following expression:
+\begin{equation}
+    I_{\mathrm{z}}=\hbar \ m_{\mathrm{I}}
+\end{equation}
+where $m_{\mathrm{I}}$ ranges from $-I$ to $+I$ in $2I+1$ integer steps. Since the nucleus is a charged particle this angular momentum leads to a nuclear magnetic momentum:
+\begin{equation}
+    \mu_{\mathrm{z}}=g_{\mathrm{I}}\ \dfrac{e}{2m} \ m_{\mathrm{I}}
+\end{equation}
+where $m$ is the mass of the nucelus and $g_{\mathrm{I}}$ is the gyromagnetic constant.
+
+
+\begin{equation}
+    \Vec{\mu}=g_{\mathrm{I}} \dfrac{e}{m} \Vec{I}
+\end{equation}
+where $m$ is the mass of the nucleus, $e$ the elementary particle charge, 
+
+
+Completely analogous to the electron spin he describes the spin of the nucleus as a precessing gyroscope. This prescession gives rise to an intrinsic angular momentum which is quantized by the spin quantum number $I$. The component of the angular momentum along the z-axis $I_{\mathrm{z}}$ is quantized by the quantum number $m_{\mathrm{I}}$ and can be described by the following expression:
+\begin{equation}
+    I_{\mathrm{z}}=\hbar \ m_{\mathrm{I}}
+\end{equation}
+where $m_{\mathrm{I}}$ ranges from $-I$ to $+I$ in $2I+1$ integer steps. Since the nucleus is a charged particle this angular momentum leads to a nuclear magnetic momentum:
+\begin{equation}
+    \mu_{\mathrm{z}}=g_{\mathrm{I}}\ \dfrac{e}{2m} \ m_{\mathrm{I}}
+\end{equation}
+where $m$ is the mass of the nucelus and $g_{\mathrm{I}}$ is the gyromagnetic constant.
+
+From this electrodynamic perspective we can immediately deduce that this effect is even more irrelevant for the nucleus than for the electron. Since a single proton is roughly 1836 times heavier than the electron its cyclotron frequency $w_{\mathrm{c}}=qB/m$ is very small. We would therefore need even higher magnetic fields in order to have an impact on the energetic shift from the quadratic zeeman effect.
+\end{document}
+
